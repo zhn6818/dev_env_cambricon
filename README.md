@@ -42,7 +42,23 @@ cnmon
 
 * cnmon成功则说明驱动安装成功
 
+* docker安装(version>=v19.03)
+
+``` shell
+docker --version
+```
+<div align="center">
+    <a href="./">
+        <img src="./figure/docker_version.png" swidth="79%"/>
+    </a>
+</div>
 
 
+* 在百度网盘中下载magicmind_1.0.1-1_ubuntu18.04.tar.gz驱动
 
+``` shell
+sudo docker load -i magicmind_1.0.1-1_ubuntu18.04.tar.gz
+
+sudo docker images
+```
 
