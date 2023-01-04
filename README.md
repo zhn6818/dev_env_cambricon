@@ -92,4 +92,4 @@ sudo docker run -it --cap-add=sys_ptrace \
 
 ## 支持的模型
 
-[model教程](./model/README.md)
+[model教程](./model/)
