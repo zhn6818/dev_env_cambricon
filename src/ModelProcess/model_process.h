@@ -27,11 +27,17 @@ public:
 
     size_t GetInputSize();
 
+    size_t GetOutputSize();
+
     magicmind::DataType GetInputType();
+    magicmind::DataType GetOutputType();
 
     void copyinputdata(void *pInput, size_t pInputSize);
 
     void enqueue();
+
+    void* copyoutputdata();
+
 
 private:
     int deviceId;

@@ -25,14 +25,22 @@ namespace ASCEND_VIRGO
         {
             result.resize(0);
             size_t inputSize = modelProcess->GetInputSize();
-            size_t sizeB = sizeof(modelProcess->GetInputType());
+            size_t sizeIn = sizeof(modelProcess->GetInputType());
             float *data = new float[inputSize];
-            for (int i = 0; i < inputSize / sizeB; i++)
+            for (int i = 0; i < inputSize / sizeIn; i++)
             {
                 *(data + i) = 1;
             }
             modelProcess->copyinputdata(data, inputSize);
             modelProcess->enqueue();
+            float *out = (float *)modelProcess->copyoutputdata();
+            size_t outsize = modelProcess->GetOutputSize();
+            size_t sizeOut = sizeof(modelProcess->GetOutputType());
+            for (int i = 0; i < outsize / sizeOut; i++)
+            {
+                std::cout << " " << *(out + i);
+            }
+            std::cout << std::endl;
         }
 
     private:

@@ -120,9 +120,26 @@ size_t ModelProcess::GetInputSize()
     }
 }
 
+size_t ModelProcess::GetOutputSize()
+{
+    if (output_tensors[0] != nullptr)
+    {
+        return output_tensors[0]->GetSize();
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 magicmind::DataType ModelProcess::GetInputType()
 {
     return input_tensors[0]->GetDataType();
+}
+
+magicmind::DataType ModelProcess::GetOutputType()
+{
+    return output_tensors[0]->GetDataType();
 }
 
 void ModelProcess::copyinputdata(void *pInput, size_t pInputSize)
@@ -138,4 +155,10 @@ void ModelProcess::enqueue()
 {
     MM_CHECK(this->context->Enqueue(input_tensors, output_tensors, queue));
     CNRT_CHECK(cnrtQueueSync(queue));
+}
+
+void* ModelProcess::copyoutputdata()
+{
+    CNRT_CHECK(cnrtMemcpy((void *)data_ptr, output_tensors[0]->GetMutableData(), output_tensors[0]->GetSize(), CNRT_MEM_TRANS_DIR_DEV2HOST));
+    return (void*)data_ptr;
 }
