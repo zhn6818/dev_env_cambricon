@@ -81,3 +81,15 @@ sudo docker run -it --cap-add=sys_ptrace \
         --name zhn_cam \  #container name
         yellow.hub.cambricon.com/magicmind/release/x86_64/magicmind:1.0.1-x86_64-ubuntu18.04-py_3_7 /bin/bash
 ```
+## 使用教程
+
+``` shell
+ mkdir build
+ cd build
+ cmake .. -DCMAKE_INSTALL_PREFIX=../install/
+ make
+```
+
+## 支持的模型
+
+[model教程](./model/README.md)
