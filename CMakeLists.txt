@@ -3,6 +3,8 @@ project(CNRTVirgo)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+add_definitions(-O0 -g)
+
 set(CMAKE_CXX_FLAGS "-Wno-error=deprecated-declarations -Wno-deprecated-declarations ")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O0 -Wno-write-strings")

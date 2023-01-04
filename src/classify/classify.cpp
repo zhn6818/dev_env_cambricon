@@ -21,6 +21,20 @@ namespace ASCEND_VIRGO
             modelProcess->alloc_memory_output_cpu();
         }
 
+        void process(std::vector<cv::Mat> &vecMat, std::vector<Predictioin> &result)
+        {
+            result.resize(0);
+            size_t inputSize = modelProcess->GetInputSize();
+            size_t sizeB = sizeof(modelProcess->GetInputType());
+            float *data = new float[inputSize];
+            for (int i = 0; i < inputSize / sizeB; i++)
+            {
+                *(data + i) = 1;
+            }
+            modelProcess->copyinputdata(data, inputSize);
+            modelProcess->enqueue();
+        }
+
     private:
         std::shared_ptr<ModelProcess> modelProcess;
     };
@@ -31,6 +45,10 @@ namespace ASCEND_VIRGO
     }
     Classify::~Classify()
     {
+    }
+    void Classify::process(std::vector<cv::Mat> &vecMat, std::vector<Predictioin> &result)
+    {
+        m_pHandlerClassifyPrivate->process(vecMat, result);
     }
     size_t Classify::GetBatch()
     {

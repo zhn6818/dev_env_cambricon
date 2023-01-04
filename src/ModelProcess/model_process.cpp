@@ -107,3 +107,35 @@ void ModelProcess::alloc_memory_output_cpu()
     // output tensor cpu ptrs
     data_ptr = new float[output_tensors[0]->GetSize() / sizeof(output_tensors[0]->GetDataType())];
 }
+
+size_t ModelProcess::GetInputSize()
+{
+    if (input_tensors[0] != nullptr)
+    {
+        return input_tensors[0]->GetSize();
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+magicmind::DataType ModelProcess::GetInputType()
+{
+    return input_tensors[0]->GetDataType();
+}
+
+void ModelProcess::copyinputdata(void *pInput, size_t pInputSize)
+{
+    if (pInputSize != input_tensors[0]->GetSize())
+    {
+        std::cerr << "input size error" << std::endl;
+    }
+    CNRT_CHECK(cnrtMemcpy(input_tensors[0]->GetMutableData(), pInput, input_tensors[0]->GetSize(), CNRT_MEM_TRANS_DIR_HOST2DEV));
+}
+
+void ModelProcess::enqueue()
+{
+    MM_CHECK(this->context->Enqueue(input_tensors, output_tensors, queue));
+    CNRT_CHECK(cnrtQueueSync(queue));
+}

@@ -25,6 +25,14 @@ public:
 
     void alloc_memory_output_cpu();
 
+    size_t GetInputSize();
+
+    magicmind::DataType GetInputType();
+
+    void copyinputdata(void *pInput, size_t pInputSize);
+
+    void enqueue();
+
 private:
     int deviceId;
     cnrtQueue_t queue;
