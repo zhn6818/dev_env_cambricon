@@ -60,11 +60,11 @@ libcnrt.so
 )
 
 # add_subdirectory(src)
-add_executable(infer includetest/pre_process.hpp includetest/utils.hpp srctest/infer_resnet50.cpp srctest/utils.cpp srctest/pre_process.cpp)
-target_link_libraries(
-    infer
-    ${3RDLIBS}
-)
+# add_executable(infer includetest/pre_process.hpp includetest/utils.hpp srctest/infer_resnet50.cpp srctest/utils.cpp srctest/pre_process.cpp)
+# target_link_libraries(
+#     infer
+#     ${3RDLIBS}
+# )
 
 
 add_subdirectory(src)
