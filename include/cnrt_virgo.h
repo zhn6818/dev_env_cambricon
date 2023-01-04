@@ -15,7 +15,7 @@
 
 using namespace magicmind;
 
-namespace ASCEND_VIRGO
+namespace CNRT_VIRGO
 {
     typedef std::pair<std::string, float> Predictioin;
     class ClassifyPrivate;

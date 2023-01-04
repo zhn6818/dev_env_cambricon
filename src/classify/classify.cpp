@@ -2,7 +2,7 @@
 #include "../Util/utils.h"
 #include "../ModelProcess/model_process.h"
 
-namespace ASCEND_VIRGO
+namespace CNRT_VIRGO
 {
     class ClassifyPrivate
     {
