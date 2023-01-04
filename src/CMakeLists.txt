@@ -9,12 +9,14 @@ file(
     SOURCES_FILES
     classify/*.cpp
     Util/*.cpp
+    ModelProcess/*.cpp
 )
 file(
     GLOB_RECURSE
     HEADER_FILES
     ${CMAKE_CURRENT_LIST_DIR}/../include/*.h
     ${CMAKE_CURRENT_LIST_DIR}/Util/*.h
+    ${CMAKE_CURRENT_LIST_DIR}/ModelProcess/*.h
     # /data1/code/Ascend_virgo/src/Utils/*.h
 )
 message(${CMAKE_CURRENT_LIST_DIR})
@@ -23,6 +25,7 @@ message("~~~~~~~~~~~~~~~")
 include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/../include/
     ${CMAKE_CURRENT_LIST_DIR}/Util
+    ${CMAKE_CURRENT_LIST_DIR}/ModelProcess
 )
 
 add_library(
