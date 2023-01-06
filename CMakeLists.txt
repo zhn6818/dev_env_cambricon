@@ -55,6 +55,9 @@ stdc++ pthread libgflags.so
 
 magicmind_runtime
 cnrt
+cndrv
+cndev
+cnpapi
 magicmind
 magicmind_parser 
 pthread
@@ -70,7 +73,14 @@ libcnrt.so
 #     ${3RDLIBS}
 # )
 
-add_executable(mm_build mm_build/build.cpp)
+file(GLOB common_src_files 
+${CMAKE_CURRENT_SOURCE_DIR}/mm_build/common/*.cc
+ ${CMAKE_CURRENT_SOURCE_DIR}/mm_build/third_party/json11/*.cc
+)
+
+file(GLOB common_header_files ${CMAKE_CURRENT_SOURCE_DIR}/mm_build/common/*.h)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/mm_build)
+add_executable(mm_build mm_build/build.cpp mm_build/builder_config.cpp mm_build/builder_config.h mm_build/build_param.h ${common_src_files} ${common_header_files})
 target_link_libraries(
     mm_build
     ${3RDLIBS}
