@@ -55,6 +55,10 @@ stdc++ pthread libgflags.so
 
 magicmind_runtime
 cnrt
+magicmind
+magicmind_parser 
+pthread
+dl
 gflags
 libcnrt.so
 )
@@ -65,6 +69,12 @@ libcnrt.so
 #     infer
 #     ${3RDLIBS}
 # )
+
+add_executable(mm_build mm_build/build.cpp)
+target_link_libraries(
+    mm_build
+    ${3RDLIBS}
+)
 
 
 add_subdirectory(src)
