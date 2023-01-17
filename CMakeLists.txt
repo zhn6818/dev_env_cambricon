@@ -34,6 +34,7 @@ include_directories(
     /usr/local/neuware/include
     /usr/local/neuware/edge/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    /data1/virgo_3rdparty/jsoncpp-1.7.2/include
 )
 
 #添加动态库
@@ -45,6 +46,7 @@ link_directories(
     #寒武纪补充
     /usr/local/neuware/lib64
     /usr/local/neuware/samples
+    /data1/virgo_3rdparty/jsoncpp-1.7.2/build/lib
 )
 
 
@@ -64,9 +66,11 @@ pthread
 dl
 gflags
 libcnrt.so
+libjsoncpp.so.1.7.2
+cnpapi
 )
 
-# add_subdirectory(src)
+#add_subdirectory(srctest)
 # add_executable(infer includetest/pre_process.hpp includetest/utils.hpp srctest/infer_resnet50.cpp srctest/utils.cpp srctest/pre_process.cpp)
 # target_link_libraries(
 #     infer
@@ -75,15 +79,15 @@ libcnrt.so
 
 file(GLOB common_src_files 
 ${CMAKE_CURRENT_SOURCE_DIR}/mm_build/common/*.cc
- ${CMAKE_CURRENT_SOURCE_DIR}/mm_build/third_party/json11/*.cc
+${CMAKE_CURRENT_SOURCE_DIR}/mm_build/third_party/json11/*.cc
 )
 
 file(GLOB common_header_files ${CMAKE_CURRENT_SOURCE_DIR}/mm_build/common/*.h)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/mm_build)
 add_executable(mm_build mm_build/build.cpp mm_build/builder_config.cpp mm_build/builder_config.h mm_build/build_param.h ${common_src_files} ${common_header_files})
 target_link_libraries(
-    mm_build
-    ${3RDLIBS}
+   mm_build
+   ${3RDLIBS}
 )
 
 

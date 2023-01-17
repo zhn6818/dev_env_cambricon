@@ -75,6 +75,7 @@ void ModelProcess::alloc_memory_input_mlu()
     auto input_dim_vec = model->GetInputDimension(0).GetDims();
     if (input_dim_vec[0] == -1)
     {
+        
         input_dim_vec[0] = 1;
     }
     magicmind::Dims input_dim = magicmind::Dims(input_dim_vec);
@@ -106,6 +107,8 @@ void ModelProcess::alloc_memory_output_cpu()
     // 6. memory alloc
     // output tensor cpu ptrs
     data_ptr = new float[output_tensors[0]->GetSize() / sizeof(output_tensors[0]->GetDataType())];
+
+    int detection_num;
 }
 
 size_t ModelProcess::GetInputSize()
@@ -119,6 +122,13 @@ size_t ModelProcess::GetInputSize()
         return 0;
     }
 }
+
+magicmind::Dims ModelProcess::GetInputDim()
+{
+    
+    return this->model->GetInputDimension(0);
+}
+
 
 size_t ModelProcess::GetOutputSize()
 {
@@ -162,3 +172,28 @@ void* ModelProcess::copyoutputdata()
     CNRT_CHECK(cnrtMemcpy((void *)data_ptr, output_tensors[0]->GetMutableData(), output_tensors[0]->GetSize(), CNRT_MEM_TRANS_DIR_DEV2HOST));
     return (void*)data_ptr;
 }
+
+ModelInfo ModelProcess::GetModelHW( )
+{
+    ModelInfo tmp;
+    if (this->model->GetInputDimension(0)[3] == 3 )
+    {
+        tmp.model_h = this->model->GetInputDimension(0)[1]; 
+        tmp.model_w = this->model->GetInputDimension(0)[2];
+    }else
+    {
+        tmp.model_h = this->model->GetInputDimension(0)[2]; 
+        tmp.model_w = this->model->GetInputDimension(0)[3];
+    }
+    
+    return tmp;
+
+}
+
+//yolov7 补充
+int ModelProcess::copyoutputdatanum()
+{
+    CNRT_CHECK(cnrtMemcpy((void *)&detection_num, output_tensors[1]->GetMutableData(), output_tensors[1]->GetSize(), CNRT_MEM_TRANS_DIR_DEV2HOST));
+    return detection_num;
+}
+

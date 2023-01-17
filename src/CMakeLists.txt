@@ -10,6 +10,8 @@ file(
     classify/*.cpp
     Util/*.cpp
     ModelProcess/*.cpp
+    preprocess/*.cpp
+    postprocess/*.cpp
 )
 file(
     GLOB_RECURSE
@@ -17,6 +19,8 @@ file(
     ${CMAKE_CURRENT_LIST_DIR}/../include/*.h
     ${CMAKE_CURRENT_LIST_DIR}/Util/*.h
     ${CMAKE_CURRENT_LIST_DIR}/ModelProcess/*.h
+    ${CMAKE_CURRENT_LIST_DIR}/preprocess/*.h
+    ${CMAKE_CURRENT_LIST_DIR}/postprocess/*.h
     # /data1/code/Ascend_virgo/src/Utils/*.h
 )
 message(${CMAKE_CURRENT_LIST_DIR})
@@ -26,6 +30,8 @@ include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/../include/
     ${CMAKE_CURRENT_LIST_DIR}/Util
     ${CMAKE_CURRENT_LIST_DIR}/ModelProcess
+    ${CMAKE_CURRENT_LIST_DIR}/preprocess
+    ${CMAKE_CURRENT_LIST_DIR}/postprocess
 )
 
 add_library(

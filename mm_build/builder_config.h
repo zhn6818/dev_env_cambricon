@@ -12,3 +12,7 @@
 using namespace magicmind;
 
 IBuilderConfig *GetConfig(BuildParam *param);
+
+bool ConfigNetwork(INetwork *net, BuildParam *param);
+
+bool BuildAndSerialize(INetwork *net, IBuilderConfig *config, BuildParam *param);

@@ -15,7 +15,7 @@
 #include "common/data.h"
 
 using ArgValue = std::vector<std::string>;
-using Args     = std::unordered_map<std::string, ArgValue>;
+using Args = std::unordered_map<std::string, ArgValue>;
 /*
  * Binary name for command line.
  */
@@ -60,22 +60,29 @@ bool ParseValue<int64_t>(const std::string &s, int64_t *value);
  * ArgResolver::success shows parsing success or not.
  */
 template <typename T>
-struct ArgResolver {};
+struct ArgResolver
+{
+};
 /*
  * Partial template specialization for string type.
  * String type args can be set alternative values.
  */
 template <>
-struct ArgResolver<std::string> {
-  std::string Dispatch(const ArgValue &v) {
+struct ArgResolver<std::string>
+{
+  std::string Dispatch(const ArgValue &v)
+  {
     success = true;
-    if (v.size() != 1) {
+    if (v.size() != 1)
+    {
       success = false;
       return "";
     }
     auto ret = Trim(v[0]);
-    if (alters_.size() && !ret.empty()) {
-      if (std::find(alters_.begin(), alters_.end(), ret) == alters_.end()) {
+    if (alters_.size() && !ret.empty())
+    {
+      if (std::find(alters_.begin(), alters_.end(), ret) == alters_.end())
+      {
         success = false;
         SLOG(ERROR) << ret << " fails to match arg alternative values. " << AlterString();
         return "";
@@ -83,17 +90,22 @@ struct ArgResolver<std::string> {
     }
     return ret;
   }
-  bool SetAlternative(const ArgValue &v) {
-    for (auto e_ : v) {
+  bool SetAlternative(const ArgValue &v)
+  {
+    for (auto e_ : v)
+    {
       alters_.push_back(Trim(e_));
     }
     return true;
   }
-  std::string AlterString() const {
+  std::string AlterString() const
+  {
     std::string ret = "";
-    if (alters_.size()) {
+    if (alters_.size())
+    {
       ret += "Allowed: ";
-      for (size_t i = 0; i < alters_.size() - 1; ++i) {
+      for (size_t i = 0; i < alters_.size() - 1; ++i)
+      {
         ret += alters_[i];
         ret += "/";
       }
@@ -102,7 +114,7 @@ struct ArgResolver<std::string> {
     return ret;
   }
   ArgValue alters_ = {};
-  bool success     = true;
+  bool success = true;
   std::string name = "<Str>";
 };
 /*
@@ -112,18 +124,24 @@ struct ArgResolver<std::string> {
  * Bool type has no custom alternative values.
  */
 template <>
-struct ArgResolver<bool> {
-  bool Dispatch(const ArgValue &v) {
+struct ArgResolver<bool>
+{
+  bool Dispatch(const ArgValue &v)
+  {
     success = true;
-    if (v.size() != 1) {
+    if (v.size() != 1)
+    {
       success = false;
       return false;
     }
     auto ret = Trim(v[0]);
     std::transform(ret.begin(), ret.end(), ret.begin(), ::tolower);
-    if (ret == "true" || ret == "1") {
+    if (ret == "true" || ret == "1")
+    {
       return true;
-    } else if (ret == "false" || ret == "0") {
+    }
+    else if (ret == "false" || ret == "0")
+    {
       return false;
     }
     success = false;
@@ -131,7 +149,7 @@ struct ArgResolver<bool> {
   }
   bool SetAlternative(const ArgValue &v) { return false; }
   std::string AlterString() const { return "Allowed: 0/1/true/false(ignore capsules)"; }
-  bool success     = true;
+  bool success = true;
   std::string name = "<Bool>";
 };
 /*
@@ -139,21 +157,24 @@ struct ArgResolver<bool> {
  * Float type has no custom alternative values.
  */
 template <>
-struct ArgResolver<float> {
-  float Dispatch(const ArgValue &v) {
+struct ArgResolver<float>
+{
+  float Dispatch(const ArgValue &v)
+  {
     success = true;
-    if (v.size() != 1) {
+    if (v.size() != 1)
+    {
       success = false;
       return 0;
     }
     auto value = Trim(v[0]);
-    float ret  = 0;
-    success    = ParseValue<float>(value, &ret);
+    float ret = 0;
+    success = ParseValue<float>(value, &ret);
     return ret;
   }
   bool SetAlternative(const ArgValue &v) { return false; }
   std::string AlterString() const { return ""; }
-  bool success     = true;
+  bool success = true;
   std::string name = "<Float>";
 };
 /*
@@ -161,18 +182,23 @@ struct ArgResolver<float> {
  * Int type has no custom alternative values.
  */
 template <>
-struct ArgResolver<int> {
-  int Dispatch(const ArgValue &v) {
+struct ArgResolver<int>
+{
+  int Dispatch(const ArgValue &v)
+  {
     success = true;
-    if (v.size() != 1) {
+    if (v.size() != 1)
+    {
       success = false;
       return 0;
     }
     auto value = Trim(v[0]);
-    int ret    = 0;
-    success    = ParseValue<int>(value, &ret);
-    if (alters_.size()) {
-      if (std::find(alters_.begin(), alters_.end(), std::to_string(ret)) == alters_.end()) {
+    int ret = 0;
+    success = ParseValue<int>(value, &ret);
+    if (alters_.size())
+    {
+      if (std::find(alters_.begin(), alters_.end(), std::to_string(ret)) == alters_.end())
+      {
         SLOG(ERROR) << "Fail to match arg alternative.";
         success = false;
         return 0;
@@ -180,22 +206,28 @@ struct ArgResolver<int> {
     }
     return ret;
   }
-  bool SetAlternative(const ArgValue &v) {
-    for (auto e_ : v) {
+  bool SetAlternative(const ArgValue &v)
+  {
+    for (auto e_ : v)
+    {
       auto value = Trim(e_);
-      int r      = 0;
-      if (!ParseValue(value, &r)) {
+      int r = 0;
+      if (!ParseValue(value, &r))
+      {
         return false;
       }
       alters_.push_back(Trim(e_));
     }
     return true;
   }
-  std::string AlterString() const {
+  std::string AlterString() const
+  {
     std::string ret = "";
-    if (alters_.size()) {
+    if (alters_.size())
+    {
       ret += "Allowed: ";
-      for (size_t i = 0; i < alters_.size() - 1; ++i) {
+      for (size_t i = 0; i < alters_.size() - 1; ++i)
+      {
         ret += alters_[i];
         ret += "/";
       }
@@ -204,7 +236,7 @@ struct ArgResolver<int> {
     return ret;
   }
   ArgValue alters_ = {};
-  bool success     = true;
+  bool success = true;
   std::string name = "<Int>";
 };
 /*
@@ -212,18 +244,23 @@ struct ArgResolver<int> {
  * Int64 type has no custom alternative values.
  */
 template <>
-struct ArgResolver<int64_t> {
-  int64_t Dispatch(const ArgValue &v) {
+struct ArgResolver<int64_t>
+{
+  int64_t Dispatch(const ArgValue &v)
+  {
     success = true;
-    if (v.size() != 1) {
+    if (v.size() != 1)
+    {
       success = false;
       return 0;
     }
-    auto value  = Trim(v[0]);
+    auto value = Trim(v[0]);
     int64_t ret = 0;
-    success     = ParseValue<int64_t>(value, &ret);
-    if (alters_.size()) {
-      if (std::find(alters_.begin(), alters_.end(), std::to_string(ret)) == alters_.end()) {
+    success = ParseValue<int64_t>(value, &ret);
+    if (alters_.size())
+    {
+      if (std::find(alters_.begin(), alters_.end(), std::to_string(ret)) == alters_.end())
+      {
         SLOG(ERROR) << "Fail to match arg alternative.";
         success = false;
         return 0;
@@ -231,22 +268,28 @@ struct ArgResolver<int64_t> {
     }
     return ret;
   }
-  bool SetAlternative(const ArgValue &v) {
-    for (auto e_ : v) {
+  bool SetAlternative(const ArgValue &v)
+  {
+    for (auto e_ : v)
+    {
       auto value = Trim(e_);
-      int64_t r  = 0;
-      if (!ParseValue(value, &r)) {
+      int64_t r = 0;
+      if (!ParseValue(value, &r))
+      {
         return false;
       }
       alters_.push_back(Trim(e_));
     }
     return true;
   }
-  std::string AlterString() const {
+  std::string AlterString() const
+  {
     std::string ret = "";
-    if (alters_.size()) {
+    if (alters_.size())
+    {
       ret += "Allowed: ";
-      for (size_t i = 0; i < alters_.size() - 1; ++i) {
+      for (size_t i = 0; i < alters_.size() - 1; ++i)
+      {
         ret += alters_[i];
         ret += "/";
       }
@@ -255,7 +298,7 @@ struct ArgResolver<int64_t> {
     return ret;
   }
   ArgValue alters_ = {};
-  bool success     = true;
+  bool success = true;
   std::string name = "<Int64>";
 };
 /*
@@ -263,7 +306,9 @@ struct ArgResolver<int64_t> {
  * This type is not allowed for arg resolver.
  */
 template <typename T>
-struct ArgResolver<std::vector<std::vector<std::vector<T>>>> {};
+struct ArgResolver<std::vector<std::vector<std::vector<T>>>>
+{
+};
 /*
  * Partial template specialization for vector type.
  * Vector type's alternative values and limitations depends on its inner type.
@@ -271,24 +316,34 @@ struct ArgResolver<std::vector<std::vector<std::vector<T>>>> {};
  * and uses space as its second spacer.
  */
 template <typename T>
-struct ArgResolver<std::vector<T>> {
-  std::vector<T> Dispatch(const ArgValue &v) {
+struct ArgResolver<std::vector<T>>
+{
+  std::vector<T> Dispatch(const ArgValue &v)
+  {
     success = true;
     std::vector<T> ret;
     ArgValue dispatch_v;
-    if ((v.size() == 1) && inner_getter.name.find("Vec") == std::string::npos) {
+    if ((v.size() == 1) && inner_getter.name.find("Vec") == std::string::npos)
+    {
       std::stringstream in(v[0]);
       std::string tmp;
-      while (std::getline(in, tmp, ',')) {
+      while (std::getline(in, tmp, ','))
+      {
         dispatch_v.push_back(tmp);
       }
-    } else {
+    }
+    else
+    {
       dispatch_v = v;
     }
-    for (auto e_ : dispatch_v) {
-      if (e_ == "_") {
+    for (auto e_ : dispatch_v)
+    {
+      if (e_ == "_")
+      {
         ret.push_back(inner_getter.Dispatch({}));
-      } else {
+      }
+      else
+      {
         ret.push_back(inner_getter.Dispatch({e_}));
       }
       success = success && inner_getter.success;
@@ -296,15 +351,19 @@ struct ArgResolver<std::vector<T>> {
     return ret;
   }
   bool SetAlternative(const ArgValue &v) { return inner_getter.SetAlternative(v); }
-  std::string AlterString() const {
-    if (inner_getter.name.find("Vec") == std::string::npos) {
+  std::string AlterString() const
+  {
+    if (inner_getter.name.find("Vec") == std::string::npos)
+    {
       return inner_getter.AlterString();
-    } else {
+    }
+    else
+    {
       return "Use \'_\' as empty vector;" + inner_getter.AlterString();
     }
   }
   ArgResolver<T> inner_getter;
-  bool success     = true;
+  bool success = true;
   std::string name = "<Vec" + inner_getter.name + ">";
 };
 /*
@@ -312,8 +371,9 @@ struct ArgResolver<std::vector<T>> {
  * One arg will firstly try to consume args by its own method, then pass the
  * rest to the next.
  */
-class ArgBase {
- public:
+class ArgBase
+{
+public:
   ArgBase(const std::string &name) : name_(name) {}
   virtual ~ArgBase();
   void SetNext(ArgBase *next);
@@ -321,13 +381,13 @@ class ArgBase {
   std::string DebugString() const;
   std::string Synopsis() const;
 
- protected:
+protected:
   std::string SynopCollect(int align, bool detailed) const;
-  virtual std::string WriteOut() const                    = 0;
+  virtual std::string WriteOut() const = 0;
   virtual std::string Doc(int align, bool detailed) const = 0;
-  virtual bool UpdateArg(Args *args)                      = 0;
+  virtual bool UpdateArg(Args *args) = 0;
 
- protected:
+protected:
   ArgBase *next_ = nullptr;
   ArgValue arg_;
   std::string name_;
@@ -343,17 +403,22 @@ std::ostream &operator<<(std::ostream &os, const ArgBase &arg);
  *           Description
  */
 template <typename T>
-class Arg : public ArgBase {
- public:
+class Arg : public ArgBase
+{
+public:
   Arg(const std::string &name) : ArgBase(name), required_(true) {}
 
-  Arg<T> *SetAlternative(const ArgValue &value) {
-    if (!r_.SetAlternative(value)) {
+  Arg<T> *SetAlternative(const ArgValue &value)
+  {
+    if (!r_.SetAlternative(value))
+    {
       SLOG(ERROR) << "Internal error, " << Name() << " does not support alternative value setting";
       abort();
     }
-    if (default_.size() > 0) {
-      if (!Check(default_)) {
+    if (default_.size() > 0)
+    {
+      if (!Check(default_))
+      {
         SLOG(ERROR) << "Internal error, invalid default value for arg: " << Name();
         abort();
       }
@@ -361,13 +426,18 @@ class Arg : public ArgBase {
     return this;
   }
 
-  Arg<T> *SetDefault(const ArgValue &default_value) {
+  Arg<T> *SetDefault(const ArgValue &default_value)
+  {
     required_ = false;
-    if (default_value.size() > 0) {
-      if (Check(default_value)) {
+    if (default_value.size() > 0)
+    {
+      if (Check(default_value))
+      {
         default_ = default_value;
-        v_       = default_value;
-      } else {
+        v_ = default_value;
+      }
+      else
+      {
         SLOG(ERROR) << "Internal error, invalid default value for arg: " << Name();
         abort();
       }
@@ -375,66 +445,92 @@ class Arg : public ArgBase {
     return this;
   }
 
-  Arg<T> *SetDescription(const std::string &desc) {
+  Arg<T> *SetDescription(const std::string &desc)
+  {
     description_ = desc;
     return this;
   }
 
-  Arg<T> *SetOnList(ArgBase **head) {
-    if (*head) {
+  Arg<T> *SetOnList(ArgBase **head)
+  {
+    if (*head)
+    {
       (*head)->SetNext(this);
-    } else {
+    }
+    else
+    {
       (*head) = this;
     }
     return this;
   }
 
-  std::tuple<bool, T> ValueOrNull() {
-    if (v_.size() > 0) {
+  std::tuple<bool, T> ValueOrNull()
+  {
+    if (v_.size() > 0)
+    {
       return std::make_tuple<bool, T>(true, r_.Dispatch(v_));
-    } else {
+    }
+    else
+    {
       return std::make_tuple<bool, T>(false, {});
     }
   }
 
- private:
+private:
   std::string Name() const { return "--" + name_ + r_.name; }
 
-  bool Check(const ArgValue &value) {
+  bool Check(const ArgValue &value)
+  {
     USED_VAR(r_.Dispatch(value));
     return r_.success;
   }
 
-  bool UpdateArg(Args *args) override final {
+  bool UpdateArg(Args *args) override final
+  {
     auto arg = args->find(name_);
-    if (arg == args->end()) {
-      if (required_) {
+    if (name_ == "onnx")
+    {
+      return true;
+    }
+    if (arg == args->end())
+    {
+      if (required_)
+      {
         SLOG(ERROR) << "Command line arg: " << Name() << " is required but not given.";
         return false;
       }
       return true;
-    } else {
-      if (arg->second.size() == 0) {
-        if (required_) {
+    }
+    else
+    {
+      if (arg->second.size() == 0)
+      {
+        if (required_)
+        {
           SLOG(ERROR) << "Command line arg: " << Name() << " is required but not given.";
           return false;
         }
       }
-      if (Check(arg->second)) {
+      if (Check(arg->second))
+      {
         v_ = arg->second;
         args->erase(arg);
         return true;
-      } else {
+      }
+      else
+      {
         SLOG(ERROR) << "Command line arg: " << Name() << " miss its type restriction.";
         return false;
       }
     }
   }
 
-  std::string WriteOut() const override final {
+  std::string WriteOut() const override final
+  {
     std::stringstream ss;
     ss << std::setw(30) << std::left << Name() << ": ";
-    for (auto e_ : v_) {
+    for (auto e_ : v_)
+    {
       ss << e_ << " ";
     }
     ss << "\n";
@@ -442,37 +538,49 @@ class Arg : public ArgBase {
     ;
   }
 
-  std::string Doc(int align, bool detailed) const override final {
+  std::string Doc(int align, bool detailed) const override final
+  {
     std::stringstream ss;
-    if (detailed) {
+    if (detailed)
+    {
       ss << std::string(align, ' ');
       ss << Name();
-      if (required_) {
+      if (required_)
+      {
         ss << "[required]: \n";
-      } else {
+      }
+      else
+      {
         ss << "[optional]: \n";
       }
       auto alter_ = r_.AlterString();
-      if (!alter_.empty()) {
+      if (!alter_.empty())
+      {
         ss << std::string(align + 10, ' ');
         ss << alter_ << "\n";
       }
-      if (default_.size() > 0) {
+      if (default_.size() > 0)
+      {
         ss << std::string(align + 10, ' ');
         ss << "Default: ";
-        for (size_t i = 0; i < default_.size() - 1; ++i) {
+        for (size_t i = 0; i < default_.size() - 1; ++i)
+        {
           ss << default_[i] << " ";
         }
         ss << default_[default_.size() - 1] << "\n";
       }
       ss << std::string(align + 10, ' ');
       ss << description_ << "\n";
-    } else {
-      if (!required_) {
+    }
+    else
+    {
+      if (!required_)
+      {
         ss << "[";
       }
       ss << Name();
-      if (!required_) {
+      if (!required_)
+      {
         ss << "]";
       }
       ss << " ";
@@ -487,12 +595,14 @@ class Arg : public ArgBase {
 };
 
 template <class T>
-bool HasValue(const std::tuple<bool, T> &t) {
+bool HasValue(const std::tuple<bool, T> &t)
+{
   return std::get<0>(t);
 }
 
 template <class T>
-T Value(const std::tuple<bool, T> &t) {
+T Value(const std::tuple<bool, T> &t)
+{
   return std::get<1>(t);
 }
 /*
@@ -500,14 +610,15 @@ T Value(const std::tuple<bool, T> &t) {
  * get values.
  * ArgListBase class are designed to be used with macro "DECLARE_ARG" below.
  */
-class ArgListBase {
- public:
+class ArgListBase
+{
+public:
   void ReadIn(Args args);
   std::string DebugString() const;
   std::string Synopsis() const;
   virtual ~ArgListBase();
 
- protected:
+protected:
   ArgBase *front = nullptr;
 };
 
@@ -522,11 +633,14 @@ std::ostream &operator<<(std::ostream &os, const ArgListBase &arg);
  * };
  * If there is no default value set for an argument, it will be treated as a required argument.
  */
-#define DECLARE_ARG(name, type)                                            \
- public:                                                                   \
-  std::tuple<bool, UNPACK type> name() { return __##name->ValueOrNull(); } \
-                                                                           \
- private:                                                                  \
+#define DECLARE_ARG(name, type)        \
+public:                                \
+  std::tuple<bool, UNPACK type> name() \
+  {                                    \
+    return __##name->ValueOrNull();    \
+  }                                    \
+                                       \
+private:                               \
   Arg<UNPACK type> *__##name = (new Arg<UNPACK type>(#name))->SetOnList(&front)
 
-#endif  // PARAM_H_
+#endif // PARAM_H_

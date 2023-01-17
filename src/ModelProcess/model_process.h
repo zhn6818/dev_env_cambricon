@@ -1,6 +1,10 @@
 #include "../Util/utils.h"
 using namespace magicmind;
 
+struct ModelInfo{
+    int model_h;
+    int model_w;
+};
 class ModelProcess
 {
 
@@ -38,6 +42,12 @@ public:
 
     void* copyoutputdata();
 
+    magicmind::Dims GetInputDim();
+
+    ModelInfo GetModelHW();
+
+    int copyoutputdatanum();
+
 
 private:
     int deviceId;
@@ -50,4 +60,6 @@ private:
     void *input_mlu_addr_ptr;
     void *output_mlu_addr_ptr = nullptr;
     float *data_ptr = nullptr;
+
+    int detection_num;
 };
