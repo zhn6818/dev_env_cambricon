@@ -26,8 +26,10 @@ void Postprocess::detect_result(int detect_num, float *out, std::vector<std::vec
 
 };
 
-void Postprocess::post_process(cv::Mat &img, int detect_num, float *out, std::vector<std::string> labels, int dst_h, int dst_w)
+void Postprocess::post_process(int img_h, int ing_w, int detect_num, float *out, std::vector<std::string> labels, int dst_h, int dst_w, std::vector<std::vector<DetectedObject>> &vec_result)
 {
+    vec_result.clear();
+	std::vector<DetectedObject> tmpBatchResult;
 
     //获取n个目标的类别、得分、框坐标
     vector<vector<float>> output;
@@ -51,8 +53,8 @@ void Postprocess::post_process(cv::Mat &img, int detect_num, float *out, std::ve
     }
 
     //处理n个目标的类别、得分、框坐标
-    int src_h = img.rows;
-    int src_w = img.cols;
+    int src_h = img_h;
+    int src_w = ing_w;
     float post_dst_h = dst_h;
     float post_dst_w = dst_w;
     float ratio = std::min(float(post_dst_h)/float(src_h), float(post_dst_w)/float(src_w));
@@ -61,6 +63,7 @@ void Postprocess::post_process(cv::Mat &img, int detect_num, float *out, std::ve
 
     for (int i = 0; i < detect_num; i++)
     {
+        CNRT_VIRGO::DetectedObject res;
         int detect_class = output[i][0];
         float score = output[i][1];
         float xmin = output[i][2];
@@ -81,14 +84,22 @@ void Postprocess::post_process(cv::Mat &img, int detect_num, float *out, std::ve
         ymin = std::max(0.0f, float(ymin));
         ymax = std::max(0.0f, float(ymax));
         
-        std::cout << "detect_class:" << labels[detect_class] << ";"
-                    << "score:" << score << ";"
-                    << "xmin:" << xmin << ";"
-                    << "ymin:" << ymin << ";"
-                    << "xmax:" << xmax << ";"
-                    << "ymax:" << ymax << ";"
-                    << std::endl;
+        // std::cout << "detect_class:" << labels[detect_class] << ";"
+        //             << "score:" << score << ";"
+        //             << "xmin:" << xmin << ";"
+        //             << "ymin:" << ymin << ";"
+        //             << "xmax:" << xmax << ";"
+        //             << "ymax:" << ymax << ";"
+        //             << std::endl;
+        
+        res.object_class = detect_class;
+        res.prob = score;
+        res.bounding_box = cv::Rect(xmin, ymin, xmax - xmin, ymax - ymin);
+        tmpBatchResult.push_back(res);
+		
     } 
+    vec_result.push_back(tmpBatchResult);
+    tmpBatchResult.clear();
 
 }
 

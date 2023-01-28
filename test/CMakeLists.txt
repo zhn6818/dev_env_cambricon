@@ -14,4 +14,5 @@ link_directories(
 )
 # message(${CMAKE_CURRENT_LIST_DIR}/../install/lib/)
 
-add_subdirectory(test)
+add_subdirectory(test_classify)
+add_subdirectory(test_detect)

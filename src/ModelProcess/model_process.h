@@ -48,6 +48,8 @@ public:
 
     int copyoutputdatanum();
 
+    size_t GetBatch();
+
 
 private:
     int deviceId;

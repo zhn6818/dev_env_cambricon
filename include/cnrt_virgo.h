@@ -17,7 +17,19 @@ using namespace magicmind;
 
 namespace CNRT_VIRGO
 {
-    // static float prob_sigmoid(float x) { return (1 / (1 + exp(-x))); }
+    struct DetectedObject
+    {
+    int object_class;
+    float prob;
+    cv::Rect bounding_box;
+
+    DetectedObject()
+        : object_class(-1), prob(0.), bounding_box(cv::Rect(0, 0, 0, 0)) {}
+    DetectedObject(int object_class, float prob, cv::Rect bb)
+        : object_class(object_class), prob(prob), bounding_box(bb) {}
+    };
+
+
     typedef std::pair<std::string, float> Predictioin;
     class ClassifyPrivate;
     class Classify
@@ -34,17 +46,14 @@ namespace CNRT_VIRGO
         // std::shared_ptr<ClassifyDvpp> m_pHandlerClassifyDvpp;
     };
 
-    
-
-    //yolov7 detect
-    typedef std::pair<std::string, float> Predictioin;
+    //yolov7 detect, 接口三个输出
     class DetectPrivate;
     class Detect
     {
     public:
         Detect(const std::string &model_path, const std::string &name_Path, size_t deviceId, std::string jsonPath =  " ");
         ~Detect();
-        void process(std::vector<cv::Mat> &vecMat, std::vector<Predictioin> &result);
+        void process(std::vector<cv::Mat> &vecMat, std::vector<std::vector<DetectedObject>> &arrDetection);
         size_t GetBatch();
         size_t GetInputSize();
 
@@ -52,15 +61,22 @@ namespace CNRT_VIRGO
         std::shared_ptr<DetectPrivate> m_pHandle;
     };
 
-    struct DetectedObject
-    {
-    int object_class;
-    float prob;
-    cv::Rect bounding_box;
+    
 
-    // DetectedObject()
-    //     : object_class(-1), prob(0.), bounding_box(cv::Rect(0, 0, 0, 0)) {}
-    // DetectedObject(int object_class, float prob, cv::Rect bb)
-    //     : object_class(object_class), prob(prob), bounding_box(bb) {}
-    };
+    // //yolov7 detect，接口两个输出，结果以pair形式输出，输出labels和score，缺少坐标信息，但是能跑通，需要将两个输出更改为3个输出
+    // typedef std::pair<std::string, float> Predictioin;
+    // class DetectPrivate;
+    // class Detect
+    // {
+    // public:
+    //     Detect(const std::string &model_path, const std::string &name_Path, size_t deviceId, std::string jsonPath =  " ");
+    //     ~Detect();
+    //     void process(std::vector<cv::Mat> &vecMat, std::vector<Predictioin> &result);
+    //     size_t GetBatch();
+    //     size_t GetInputSize();
+
+    // private:
+    //     std::shared_ptr<DetectPrivate> m_pHandle;
+    // };
+
 };

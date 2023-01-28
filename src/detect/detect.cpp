@@ -13,12 +13,13 @@ namespace CNRT_VIRGO
     class DetectPrivate
     {
     private:
-    std::string namesPath;
-    std::string jsonpath;
-    std::vector<std::string> labels;
-    cv::Mat to_img;
-    float shift;
-    
+        std::string namesPath;
+        std::string jsonpath;
+        std::vector<std::string> labels;
+        cv::Mat to_img;
+        int src_img_h = 0;
+        int src_img_w = 0;
+        float shift;
 
     public:
         DetectPrivate(const std::string &model_path, const std::string &name_Path, size_t deviceId, std::string jsonPath)
@@ -44,7 +45,7 @@ namespace CNRT_VIRGO
             {
                 std::stringstream word(line);
                 word >> name;
-                std::cout << "name: " << name << std::endl;
+                // std::cout << "name: " << name << std::endl;
                 labels.push_back(name);
             }
 
@@ -73,34 +74,40 @@ namespace CNRT_VIRGO
             // }
             // fin.clear();
             // fin.close();
-
         }
 
-        void process(std::vector<cv::Mat> &vecMat, std::vector<Predictioin> &results)
+        size_t get_batch()
         {
-            results.resize(0);
+            return modelProcess->GetBatch();
+        }
+
+        size_t get_input_size()
+        {
+            return modelProcess->GetInputSize();
+        }
+
+        void process(std::vector<cv::Mat> &vecMat, std::vector<std::vector<DetectedObject>> &arrDetection)
+        {
+            arrDetection.clear();
             size_t inputSize = modelProcess->GetInputSize();
             size_t sizeIn = sizeof(modelProcess->GetInputType());
-            cv::Mat img = vecMat[0];
-            
-            preProcess->detectPreprocess(vecMat[0],to_img, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
+            src_img_h = vecMat[0].rows;
+            src_img_w = vecMat[0].cols;
+
+            preProcess->detectPreprocess(vecMat[0], to_img, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
             modelProcess->copyinputdata(to_img.data, inputSize);
             modelProcess->enqueue();
             float *out = (float *)modelProcess->copyoutputdata();
-            int detect_num = (int ) modelProcess->copyoutputdatanum();
-            std::cout << detect_num << std::endl;
-            postProcess->post_process(img, detect_num, out, labels, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
-
-            
+            int detect_num = (int)modelProcess->copyoutputdatanum();
+            postProcess->post_process(src_img_h, src_img_w, detect_num, out, labels, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w, arrDetection);
         }
 
     private:
         std::shared_ptr<ModelProcess> modelProcess;
         std::shared_ptr<Preprocess> preProcess;
         std::shared_ptr<Postprocess> postProcess;
-
     };
-    
+
     Detect::Detect(const std::string &model_path, const std::string &name_Path, size_t deviceId, std::string jsonPath)
     {
         m_pHandle = std::make_shared<DetectPrivate>(model_path, name_Path, deviceId, jsonPath);
@@ -110,16 +117,17 @@ namespace CNRT_VIRGO
     {
     }
 
-    void Detect::process(std::vector<cv::Mat> &vecMat, std::vector<Predictioin> &results)
+    void Detect::process(std::vector<cv::Mat> &vecMat, std::vector<std::vector<DetectedObject>> &arrDetection)
     {
-        m_pHandle->process(vecMat, results);
+        m_pHandle->process(vecMat, arrDetection);
     }
 
     size_t Detect::GetBatch()
     {
-        
+        return m_pHandle->get_batch();
     }
     size_t Detect::GetInputSize()
     {
+        return m_pHandle->get_input_size();
     }
 }

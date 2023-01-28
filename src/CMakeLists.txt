@@ -8,6 +8,7 @@ file(
     GLOB_RECURSE
     SOURCES_FILES
     classify/*.cpp
+    detect/*.cpp
     Util/*.cpp
     ModelProcess/*.cpp
     preprocess/*.cpp

@@ -73,6 +73,18 @@ namespace CNRT_VIRGO
 
         }
 
+        size_t get_batch()
+        {
+            return modelProcess->GetBatch();
+        }
+
+        size_t get_input_size()
+        {
+            return modelProcess->GetInputSize();
+        }
+
+        
+
         void process(std::vector<cv::Mat> &vecMat, std::vector<Predictioin> &result)
         {
             result.resize(0);
@@ -118,9 +130,10 @@ namespace CNRT_VIRGO
     }
     size_t Classify::GetBatch()
     {
-        
+        return m_pHandlerClassifyPrivate->get_batch();
     }
     size_t Classify::GetInputSize()
     {
+        return m_pHandlerClassifyPrivate->get_input_size();
     }
 }

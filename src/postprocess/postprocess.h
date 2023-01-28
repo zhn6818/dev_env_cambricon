@@ -22,7 +22,7 @@ class Postprocess
 {
 public:
 
-    void post_process(cv::Mat &img, int detect_num, float *out, std::vector<std::string> labels, int dst_h, int dst_w);
+    void post_process(int img_h, int ing_w, int detect_num, float *out, std::vector<std::string> labels, int dst_h, int dst_w, std::vector<std::vector<DetectedObject>> &vec_result);
 
     void detect_result(int detect_num, float *out, std::vector<std::vector<float>> output);
 

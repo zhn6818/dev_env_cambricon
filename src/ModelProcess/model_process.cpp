@@ -108,7 +108,7 @@ void ModelProcess::alloc_memory_output_cpu()
     // output tensor cpu ptrs
     data_ptr = new float[output_tensors[0]->GetSize() / sizeof(output_tensors[0]->GetDataType())];
 
-    int detection_num;
+    int detection_num = 0;
 }
 
 size_t ModelProcess::GetInputSize()
@@ -197,3 +197,7 @@ int ModelProcess::copyoutputdatanum()
     return detection_num;
 }
 
+size_t ModelProcess::GetBatch()
+{
+    return this->model->GetInputDimension(0)[0];
+}
