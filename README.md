@@ -10,8 +10,7 @@
 
 ## Installation
 
-
-* [driver tookit eg...](https://pan.baidu.com/s/1Yw6bP1lP58CZV5Pox_vVZw?pwd=2pqy)     密码：2pqy
+* [driver tookit eg...](https://pan.baidu.com/s/1A9tNymLKwbxeTnx5ATSPQg?pwd=67ir)     密码：67ir
 
 ```
 #检查设备资源是否分配成功
