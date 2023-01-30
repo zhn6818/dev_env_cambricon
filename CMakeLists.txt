@@ -57,6 +57,7 @@ stdc++ pthread libgflags.so
 
 magicmind_runtime
 cnrt
+cncv
 cndrv
 cndev
 cnpapi

@@ -13,6 +13,7 @@ file(
     ModelProcess/*.cpp
     preprocess/*.cpp
     postprocess/*.cpp
+    cncv/*.cpp
 )
 file(
     GLOB_RECURSE
@@ -22,6 +23,7 @@ file(
     ${CMAKE_CURRENT_LIST_DIR}/ModelProcess/*.h
     ${CMAKE_CURRENT_LIST_DIR}/preprocess/*.h
     ${CMAKE_CURRENT_LIST_DIR}/postprocess/*.h
+    ${CMAKE_CURRENT_LIST_DIR}/cncv/*.h
     # /data1/code/Ascend_virgo/src/Utils/*.h
 )
 message(${CMAKE_CURRENT_LIST_DIR})
@@ -33,6 +35,7 @@ include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/ModelProcess
     ${CMAKE_CURRENT_LIST_DIR}/preprocess
     ${CMAKE_CURRENT_LIST_DIR}/postprocess
+    ${CMAKE_CURRENT_LIST_DIR}/cncv
 )
 
 add_library(
