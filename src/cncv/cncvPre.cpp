@@ -165,13 +165,13 @@ void CNCVpreprocess::classPreprocess(cv::Mat &src_mat, float *data, int w, int h
 
 void CNCVpreprocess::cncvsplit()
 {
-    uchar a[12] = {4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3};
-    cv::Mat src_mat = cv::Mat(2, 2, CV_8UC3, a);
+    float a[12] = {4.1, 2.1, 3.1, 4, 2, 3, 4, 2, 3, 4, 2, 3};
+    cv::Mat src_mat = cv::Mat(2, 2, CV_32FC3, a);
     const uint32_t batch_size = 1;
     const cncvPixelFormat src_fmt = CNCV_PIX_FMT_BGR;
     const cncvPixelFormat dst_fmt = CNCV_PIX_FMT_GRAY;
-    const cncvDepth_t src_dtype = CNCV_DEPTH_8U;
-    const cncvDepth_t dst_dtype = CNCV_DEPTH_8U;
+    const cncvDepth_t src_dtype = CNCV_DEPTH_32F;
+    const cncvDepth_t dst_dtype = CNCV_DEPTH_32F;
     const cncvColorSpace color_space = CNCV_COLOR_SPACE_INVALID;
 
     uint32_t in_width = src_mat.cols;
@@ -215,18 +215,18 @@ void CNCVpreprocess::cncvsplit()
     uint64_t src_data_offset = 0;
     for (uint32_t i = 0; i < batch_size; i++)
     {
-        callCNRTFunc(cnrtMemcpy((uint8_t *)mlu_src_datas + src_data_offset,
+        callCNRTFunc(cnrtMemcpy((float *)mlu_src_datas + src_data_offset,
                                 src_mat.data,
                                 src_desc.stride[0] * src_desc.height,
                                 CNRT_MEM_TRANS_DIR_HOST2DEV));
-        cpu_src_ptrs[i] = (uint8_t *)mlu_src_datas + src_data_offset;
-        src_data_offset += src_desc.stride[0] * src_desc.height;
+        cpu_src_ptrs[i] = (float *)mlu_src_datas + src_data_offset;
+        src_data_offset += src_desc.stride[0] * src_desc.height / sizeof(float);
     }
     uint64_t dst_data_offset = 0;
     for (uint32_t i = 0; i < batch_size * 3; i++)
     {
-        cpu_dst_ptrs[i] = (uint8_t *)mlu_dst_datas + dst_data_offset;
-        dst_data_offset += dst_desc.stride[0] * dst_desc.height;
+        cpu_dst_ptrs[i] = (float *)mlu_dst_datas + dst_data_offset;
+        dst_data_offset += dst_desc.stride[0] * dst_desc.height / sizeof(float);
     }
     callCNRTFunc(cnrtMemcpy(mlu_src_ptrs,
                             cpu_src_ptrs,
@@ -245,6 +245,7 @@ void CNCVpreprocess::cncvsplit()
         mlu_src_ptrs,
         dst_desc,
         mlu_dst_ptrs));
+    callCNRTFunc(cnrtQueueSync(queue));
 
     uint64_t max_image_size = MAX(getImageDataSize(src_desc), getImageDataSize(dst_desc));
     img_cpu_buffer = malloc(max_image_size);
@@ -257,9 +258,9 @@ void CNCVpreprocess::cncvsplit()
                                 CNRT_MEM_TRANS_DIR_DEV2HOST));
         dst_data_offset += dst_desc.stride[0] * dst_desc.height;
     }
-    for (int i = 0; i < max_image_size; i++)
+    for (int i = 0; i < max_image_size / sizeof(float); i++)
     {
-        std::cout << (int)static_cast<uchar *>(img_cpu_buffer)[i] << std::endl;
+        std::cout << (float)static_cast<float *>(img_cpu_buffer)[i] << std::endl;
     }
 
     std::cout << std::endl;
