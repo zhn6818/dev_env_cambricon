@@ -90,13 +90,15 @@ namespace CNRT_VIRGO
             size_t sizeIn = sizeof(modelProcess->GetInputType());
             float *data = new float[inputSize];
 
-            preProcess->classPreprocess(vecMat[0], data, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
+            // preProcess->classPreprocess(vecMat[0], data, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
 
-            float *data22 = new float[inputSize];
-            cncvPreprocess->classPreprocess(vecMat[0], data22, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
+            // float *data22 = new float[inputSize];
+            // cncvPreprocess->classPreprocess(vecMat[0], data22, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
 
             // cncvPreprocess->cncvsplit();
-            cncvPreprocess->cncvresize();
+
+            float *data22 = new float[inputSize];
+            cncvPreprocess->cncvresizestdsplit(vecMat[0], data22, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
 
             modelProcess->copyinputdata(data, inputSize);
             modelProcess->enqueue();

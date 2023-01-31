@@ -25,5 +25,6 @@ public:
     void classPreprocess(cv::Mat &img, float *data, int w, int h);
     void cncvsplit();
     void cncvresize();
+    void cncvresizestdsplit(cv::Mat &img, float *data, int w, int h);
     ~CNCVpreprocess();
 };

@@ -57,7 +57,7 @@ int main()
 
     for (int i = 0; i < image_num; i++)
     {
-
+        std::cout << "img name: " << image_paths[i] << std::endl;
         cv::Mat img = cv::imread(image_paths[i]);
         std::vector<cv::Mat> sdf;
         sdf.push_back(img);
