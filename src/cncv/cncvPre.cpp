@@ -40,11 +40,14 @@ void CNCVpreprocess::release()
     free(img_cpu_buffer);
     free(cpu_src_ptrs);
     free(cpu_dst_ptrs);
+    free(cpu_dst2_ptrs);
     cnrtFree(workspace);
     cnrtFree(mlu_src_datas);
     cnrtFree(mlu_dst_datas);
+    // cnrtFree(mlu_dst2_datas);
     cnrtFree(mlu_src_ptrs);
     cnrtFree(mlu_dst_ptrs);
+    cnrtFree(mlu_dst2_ptrs);
     if (handle)
     {
         cncvDestroy(handle);
@@ -402,8 +405,10 @@ void CNCVpreprocess::cncvresizestdsplit(cv::Mat &src_mat, float *data, int w, in
     const uint32_t batch_size = 1;
     const cncvPixelFormat src_fmt = CNCV_PIX_FMT_BGR;
     const cncvPixelFormat dst_fmt = CNCV_PIX_FMT_BGR;
+    const cncvPixelFormat dst2_fmt = CNCV_PIX_FMT_BGR;
     const cncvDepth_t src_dtype = CNCV_DEPTH_8U;
     const cncvDepth_t dst_dtype = CNCV_DEPTH_8U;
+    const cncvDepth_t dst2_dtype = CNCV_DEPTH_32F;
     const cncvColorSpace color_space = CNCV_COLOR_SPACE_INVALID;
 
     uint32_t in_width = src_mat.cols;
@@ -412,6 +417,7 @@ void CNCVpreprocess::cncvresizestdsplit(cv::Mat &src_mat, float *data, int w, in
     uint32_t out_height = h;
     uint32_t num_src_ptrs = getPixFmtPlaneNum(src_fmt) * batch_size;
     uint32_t num_dst_ptrs = getPixFmtPlaneNum(dst_fmt) * batch_size;
+    uint32_t num_dst2_ptrs = getPixFmtPlaneNum(dst_fmt) * batch_size;
 
     cncvImageDescriptor src_desc;
     src_desc.width = in_width;
@@ -428,6 +434,14 @@ void CNCVpreprocess::cncvresizestdsplit(cv::Mat &src_mat, float *data, int w, in
     dst_desc.pixel_fmt = dst_fmt;
     dst_desc.color_space = color_space;
     dst_desc.stride[0] = 3 * out_width * getSizeOfDepth(dst_desc.depth);
+
+    cncvImageDescriptor dst2_desc;
+    dst2_desc.width = out_width;
+    dst2_desc.height = out_height;
+    dst2_desc.depth = dst2_dtype;
+    dst2_desc.pixel_fmt = dst2_fmt;
+    dst2_desc.color_space = color_space;
+    dst2_desc.stride[0] = 3 * out_width * getSizeOfDepth(dst2_desc.depth);
 
     cncvImageDescriptor *src_descs = nullptr, *dst_descs = nullptr;
     src_descs = (cncvImageDescriptor *)malloc(batch_size * sizeof(cncvImageDescriptor));
@@ -451,10 +465,13 @@ void CNCVpreprocess::cncvresizestdsplit(cv::Mat &src_mat, float *data, int w, in
     }
     uint64_t total_src_data_size = getVariableBatchDataSize(batch_size, src_descs);
     uint64_t total_dst_data_size = getVariableBatchDataSize(batch_size, dst_descs);
+    uint64_t total_dst2_data_size = getFixedBatchDataSize(batch_size, dst2_desc);
+
     uint64_t max_image_size = MAX(getMaxImageDataSize(batch_size, src_descs),
-                                  getMaxImageDataSize(batch_size, dst_descs));
+                                  getImageDataSize(dst2_desc));
+    img_cpu_buffer = malloc(max_image_size);
     // worksize
-    size_t workspace_resize;
+    size_t workspace_resize, min_workspace_size, total_workspace_size;
     callCNCVFunc(cncvGetResizeWorkspaceSize(batch_size,
                                             src_descs,
                                             src_rois,
@@ -462,16 +479,25 @@ void CNCVpreprocess::cncvresizestdsplit(cv::Mat &src_mat, float *data, int w, in
                                             dst_rois,
                                             CNCV_INTER_BILINEAR,
                                             &workspace_resize));
-    workspace = mallocDevice(workspace_resize);
+
+    size_t channel_num = 3;
+    callCNCVFunc(cncvGetMeanStdWorkspaceSize(channel_num, &min_workspace_size));
+    total_workspace_size = workspace_resize + min_workspace_size;
+    workspace = mallocDevice(total_workspace_size);
+
     cpu_src_ptrs = (void **)malloc(num_src_ptrs * sizeof(void *));
     cpu_dst_ptrs = (void **)malloc(num_dst_ptrs * sizeof(void *));
+    cpu_dst2_ptrs = (void **)malloc(num_dst2_ptrs * sizeof(void *));
     mlu_src_ptrs = (void **)mallocDevice(num_src_ptrs * sizeof(void *));
     mlu_dst_ptrs = (void **)mallocDevice(num_dst_ptrs * sizeof(void *));
+    mlu_dst2_ptrs = (void **)mallocDevice(num_dst2_ptrs * sizeof(void *));
     mlu_src_datas = mallocDevice(total_src_data_size);
-    mlu_dst_datas = mallocDevice(total_dst_data_size);
-    img_cpu_buffer = malloc(max_image_size);
+    mlu_dst_datas = mallocDevice(total_dst_data_size + total_dst2_data_size);
+    callCNRTFunc(cnrtMemset((uint8_t *)mlu_dst_datas + total_dst_data_size, 0, total_dst2_data_size));
+
     uint64_t src_data_offset = 0;
     uint64_t dst_data_offset = 0;
+    uint64_t dst2_data_offset = 0;
     for (uint32_t i = 0; i < batch_size; i++)
     {
         callCNRTFunc(cnrtMemcpy((uint8_t *)mlu_src_datas + src_data_offset,
@@ -481,9 +507,11 @@ void CNCVpreprocess::cncvresizestdsplit(cv::Mat &src_mat, float *data, int w, in
 
         cpu_src_ptrs[i] = (uint8_t *)mlu_src_datas + src_data_offset;
         cpu_dst_ptrs[i] = (uint8_t *)mlu_dst_datas + dst_data_offset;
+        cpu_dst2_ptrs[i] = (uint8_t *)mlu_dst_datas + dst2_data_offset + total_dst_data_size;
 
         src_data_offset += src_desc.stride[0] * src_desc.height;
         dst_data_offset += dst_desc.stride[0] * dst_desc.height;
+        dst2_data_offset += dst2_desc.stride[0] * dst2_desc.height;
     }
 
     callCNRTFunc(cnrtMemcpy(mlu_src_ptrs,
@@ -493,6 +521,10 @@ void CNCVpreprocess::cncvresizestdsplit(cv::Mat &src_mat, float *data, int w, in
     callCNRTFunc(cnrtMemcpy(mlu_dst_ptrs,
                             cpu_dst_ptrs,
                             num_dst_ptrs * sizeof(void *),
+                            CNRT_MEM_TRANS_DIR_HOST2DEV));
+    callCNRTFunc(cnrtMemcpy(mlu_dst2_ptrs,
+                            cpu_dst2_ptrs,
+                            num_dst2_ptrs * sizeof(void *),
                             CNRT_MEM_TRANS_DIR_HOST2DEV));
     callCNCVFunc(
         cncvResize_AdvancedROI(handle,
@@ -506,18 +538,39 @@ void CNCVpreprocess::cncvresizestdsplit(cv::Mat &src_mat, float *data, int w, in
                                workspace_resize,
                                (uint8_t *)workspace,
                                CNCV_INTER_BILINEAR));
+    float mean[3] = {0, 0, 0};
+    float std[3] = {255.0, 255.0, 255.0};
+    callCNCVFunc(cncvMeanStd(handle,
+                             batch_size,
+                             dst_desc,
+                             mlu_dst_ptrs,
+                             mean,
+                             std,
+                             dst2_desc,
+                             mlu_dst2_ptrs,
+                             min_workspace_size,
+                             (uint8_t *)workspace + workspace_resize));
     callCNRTFunc(cnrtQueueSync(queue));
 
-    // for (size_t i = 0; i < batch_size; i++)
-    // {
-    //     callCNRTFunc(cnrtMemcpy(img_cpu_buffer,
-    //                             cpu_dst_ptrs[i],
-    //                             dst_desc.stride[0] * dst_desc.height,
-    //                             CNRT_MEM_TRANS_DIR_DEV2HOST));
-    // std::string target_name = "./test/resize_" + std::to_string(i) + ".jpg";
-    // saveDstImage(img_cpu_buffer, target_name, dst_desc, CV_8UC3);
-    // printMat((uchar *)img_cpu_buffer, 490);
-    // }
+    for (size_t i = 0; i < batch_size; i++)
+    {
+        callCNRTFunc(cnrtMemcpy(img_cpu_buffer,
+                                cpu_dst_ptrs[i],
+                                dst_desc.stride[0] * dst_desc.height,
+                                CNRT_MEM_TRANS_DIR_DEV2HOST));
+        std::string target_name = "./test/resize_" + std::to_string(i) + ".jpg";
+        saveDstImage(img_cpu_buffer, target_name, dst_desc, CV_8UC3);
+        printMat((uchar *)img_cpu_buffer, 490);
+    }
+    for (size_t i = 0; i < batch_size; i++)
+    {
+        callCNRTFunc(cnrtMemcpy(img_cpu_buffer,
+                                cpu_dst2_ptrs[i],
+                                dst2_desc.stride[0] * dst2_desc.height,
+                                CNRT_MEM_TRANS_DIR_DEV2HOST));
+
+        printMat((float *)img_cpu_buffer, 490);
+    }
     std::cout << std::endl;
 }
 

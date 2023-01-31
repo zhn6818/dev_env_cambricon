@@ -5,10 +5,13 @@ class CNCVpreprocess
 {
     void **cpu_src_ptrs = nullptr;
     void **cpu_dst_ptrs = nullptr;
+    void **cpu_dst2_ptrs = nullptr;
     void **mlu_src_ptrs = nullptr;
     void **mlu_dst_ptrs = nullptr;
+    void **mlu_dst2_ptrs = nullptr;
     void *mlu_src_datas = nullptr;
     void *mlu_dst_datas = nullptr;
+    // void *mlu_dst2_datas = nullptr;
     void *img_cpu_buffer = nullptr;
     void *workspace = nullptr;
     cnrtQueue_t queue = nullptr;
