@@ -95,7 +95,8 @@ namespace CNRT_VIRGO
             float *data22 = new float[inputSize];
             cncvPreprocess->classPreprocess(vecMat[0], data22, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
 
-            cncvPreprocess->cncvsplit();
+            // cncvPreprocess->cncvsplit();
+            cncvPreprocess->cncvresize();
 
             modelProcess->copyinputdata(data, inputSize);
             modelProcess->enqueue();
