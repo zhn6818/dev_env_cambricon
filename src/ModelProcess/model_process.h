@@ -38,6 +38,8 @@ public:
 
     void copyinputdata(void *pInput, size_t pInputSize);
 
+    void copymluinputdata(void *pInput, size_t pInputSize);
+
     void enqueue();
 
     void* copyoutputdata();

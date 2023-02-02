@@ -816,7 +816,7 @@ void CNCVpreprocess::cncvresizestd(cv::Mat &src_mat, void *data, int w, int h)
         callCNRTFunc(cnrtMemcpy(data,
                                 cpu_dst2_ptrs[i],
                                 dst2_desc.stride[0] * dst2_desc.height,
-                                CNRT_MEM_TRANS_DIR_DEV2HOST));
+                                CNRT_MEM_TRANS_DIR_DEV2DEV));
 
         // printMat((float *)data, 490);
     }

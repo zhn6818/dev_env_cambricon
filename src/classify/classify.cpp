@@ -16,7 +16,10 @@ namespace CNRT_VIRGO
         std::string namesPath;
         std::string jsonpath;
         std::vector<std::string> labels;
+        size_t inputSize;
         float shift;
+        float *data;
+        void *mlu_data;
 
     public:
         ClassifyPrivate(const std::string &model_path, const std::string &name_Path, size_t deviceId, std::string jsonPath)
@@ -71,6 +74,14 @@ namespace CNRT_VIRGO
             }
             fin.clear();
             fin.close();
+            inputSize = modelProcess->GetInputSize();
+            data = new float[inputSize];
+            mlu_data = mallocDevice(inputSize);
+        }
+        ~ClassifyPrivate()
+        {
+            free(data);
+            cnrtFree(mlu_data);
         }
 
         size_t get_batch()
@@ -101,8 +112,6 @@ namespace CNRT_VIRGO
         void process(std::vector<cv::Mat> &vecMat, std::vector<Predictioin> &result)
         {
             result.resize(0);
-            size_t inputSize = modelProcess->GetInputSize();
-            size_t sizeIn = sizeof(modelProcess->GetInputType());
 
             // float *data = new float[inputSize];
             // preProcess->classPreprocess(vecMat[0], data, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
@@ -117,8 +126,7 @@ namespace CNRT_VIRGO
 
             // cncvPreprocess->cncvsplit();
 
-            float *data = new float[inputSize];
-            cncvPreprocess->cncvresizestd(vecMat[0], data, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
+            cncvPreprocess->cncvresizestd(vecMat[0], mlu_data, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
 
             // for(int i = 0; i < 490; i++)
             // {
@@ -132,18 +140,17 @@ namespace CNRT_VIRGO
             // Mat2ChannelLast(img, data);
             // std::cout << std::endl;
 
-
-            modelProcess->copyinputdata(data, inputSize);
+            modelProcess->copymluinputdata(mlu_data, inputSize);
             modelProcess->enqueue();
             float *out = (float *)modelProcess->copyoutputdata();
             size_t outsize = modelProcess->GetOutputSize();
             size_t sizeOut = sizeof(modelProcess->GetOutputType());
 
-            for (int i = 0; i < outsize / sizeOut; i++)
-            {
-                std::cout << " " << *(out + i);
-            }
-            std::cout << std::endl;
+            // for (int i = 0; i < outsize / sizeOut; i++)
+            // {
+            //     std::cout << " " << *(out + i);
+            // }
+            // std::cout << std::endl;
 
             float maxValue = *max_element(out, out + outsize / sizeOut);
             int maxPosition = max_element(out, out + outsize / sizeOut) - out;
