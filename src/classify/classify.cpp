@@ -18,7 +18,7 @@ namespace CNRT_VIRGO
         std::vector<std::string> labels;
         size_t inputSize;
         float shift;
-        float *data;
+        // float *data;
         void *mlu_data;
 
     public:
@@ -75,12 +75,12 @@ namespace CNRT_VIRGO
             fin.clear();
             fin.close();
             inputSize = modelProcess->GetInputSize();
-            data = new float[inputSize];
+            // data = new float[inputSize];
             mlu_data = mallocDevice(inputSize);
         }
         ~ClassifyPrivate()
         {
-            free(data);
+            // free(data);
             cnrtFree(mlu_data);
         }
 
