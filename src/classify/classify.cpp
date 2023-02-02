@@ -82,23 +82,56 @@ namespace CNRT_VIRGO
         {
             return modelProcess->GetInputSize();
         }
+        void Mat2ChannelLast(cv::Mat &src, float *p_input)
+        {
+            int CHANNEL = 3;
+            assert(!src.empty());
 
+            for (int i = 0; i < src.rows; i++)
+            {
+                for (int j = 0; j < src.cols; j++)
+                {
+                    for (int c = 0; c < CHANNEL; c++)
+                    {
+                        p_input[i * src.cols * CHANNEL + j * CHANNEL + c] = (src.ptr<float>(i)[j * CHANNEL + c]) / 1.0;
+                    }
+                }
+            }
+        }
         void process(std::vector<cv::Mat> &vecMat, std::vector<Predictioin> &result)
         {
             result.resize(0);
             size_t inputSize = modelProcess->GetInputSize();
             size_t sizeIn = sizeof(modelProcess->GetInputType());
-            float *data = new float[inputSize];
 
+            // float *data = new float[inputSize];
             // preProcess->classPreprocess(vecMat[0], data, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
+            // for(int i = 0; i < 490; i++)
+            // {
+            //     std::cout << " " << *(data + i);
+            // }
+            // std::cout << std::endl;
 
             // float *data22 = new float[inputSize];
             // cncvPreprocess->classPreprocess(vecMat[0], data22, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
 
             // cncvPreprocess->cncvsplit();
 
-            float *data22 = new float[inputSize];
-            cncvPreprocess->cncvresizestdsplit(vecMat[0], data22, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
+            float *data = new float[inputSize];
+            cncvPreprocess->cncvresizestd(vecMat[0], data, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
+
+            // for(int i = 0; i < 490; i++)
+            // {
+            //     std::cout << " " << (float)*(data + i);
+            // }
+            // std::cout << std::endl;
+
+            // float *data = new float[inputSize];
+            // cv::Mat img = cv::imread("./test/resize_00.png");
+            // img.convertTo(img, CV_32FC3, 1 / 255.0);
+            // Mat2ChannelLast(img, data);
+            // std::cout << std::endl;
+
 
             modelProcess->copyinputdata(data, inputSize);
             modelProcess->enqueue();
@@ -106,11 +139,11 @@ namespace CNRT_VIRGO
             size_t outsize = modelProcess->GetOutputSize();
             size_t sizeOut = sizeof(modelProcess->GetOutputType());
 
-            // for (int i = 0; i < outsize / sizeOut; i++)
-            // {
-            //     std::cout << " " << *(out + i);
-            // }
-            // std::cout << std::endl;
+            for (int i = 0; i < outsize / sizeOut; i++)
+            {
+                std::cout << " " << *(out + i);
+            }
+            std::cout << std::endl;
 
             float maxValue = *max_element(out, out + outsize / sizeOut);
             int maxPosition = max_element(out, out + outsize / sizeOut) - out;

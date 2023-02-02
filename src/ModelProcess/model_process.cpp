@@ -178,7 +178,7 @@ ModelInfo ModelProcess::GetModelHW( )
     ModelInfo tmp;
     if (this->model->GetInputDimension(0)[3] == 3 )
     {
-        tmp.model_h = this->model->GetInputDimension(0)[1]; 
+        tmp.model_h = this->model->GetInputDimension(0)[1];
         tmp.model_w = this->model->GetInputDimension(0)[2];
     }else
     {

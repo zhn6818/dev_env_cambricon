@@ -5,7 +5,7 @@ using namespace CNRT_VIRGO;
 int main()
 {
     // std::shared_ptr<Classify> dffg = std::make_shared<Classify>("/data1/qwy/code/magicmind_cloud-master/buildin/cv/classification/resnet50_onnx/data/models/resnet50_onnx_model_force_float32_true_1", "", 0);
-    std::shared_ptr<Classify> dffg = std::make_shared<Classify>("/usr/local/neuware/samples/magicmind/mm_build/model/resnet18.model",
+    std::shared_ptr<Classify> dffg = std::make_shared<Classify>("/data1/qwy/code/dev_env_cambricon/model/resnet18_onnx/data/models/resnet18_onnx_model_qint8_mixed_float16_true_1_nhwc",
                                                                 "/data1/qwy/labels/commonworker.names",
                                                                 0);
 

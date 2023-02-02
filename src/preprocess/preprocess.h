@@ -10,7 +10,9 @@ public:
 
     void Mat2ChannelFirst(cv::Mat &src, float* p_input);
 
-    void classPreprocess(cv::Mat &img, float* data, int w, int h);
+    void Mat2ChannelLast(cv::Mat &src, float *p_input);
+
+    void classPreprocess(cv::Mat &img, float *data, int w, int h);
 
     void detectPreprocess(cv::Mat &img, cv::Mat &to_img, int h, int w);
 
