@@ -128,6 +128,8 @@ namespace CNRT_VIRGO
 
             cncvPreprocess->cncvresizestd(vecMat[0], mlu_data, modelProcess->GetModelHW().model_h, modelProcess->GetModelHW().model_w);
 
+            // cncvPreprocess->cncvbgr2rgb();
+
             // for(int i = 0; i < 490; i++)
             // {
             //     std::cout << " " << (float)*(data + i);

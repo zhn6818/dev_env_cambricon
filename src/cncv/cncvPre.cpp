@@ -823,6 +823,116 @@ void CNCVpreprocess::cncvresizestd(cv::Mat &src_mat, void *data, int w, int h)
     std::cout << std::endl;
 }
 
+void CNCVpreprocess::cncvbgr2rgb()
+{
+    uchar a[12] = {10, 20, 30, 20, 30, 40, 30, 40, 50, 40, 50, 60};
+    cv::Mat src_mat = cv::Mat(2, 2, CV_8UC3, a);
+
+    std::cout << "this is test convert to RGB " << std::endl;
+    const uint32_t batch_size = 1;
+    const cncvPixelFormat src_fmt = CNCV_PIX_FMT_BGR;
+    const cncvPixelFormat dst_fmt = CNCV_PIX_FMT_RGB;
+    const cncvDepth_t src_dtype = CNCV_DEPTH_8U;
+    const cncvDepth_t dst_dtype = CNCV_DEPTH_8U;
+    const cncvColorSpace color_space = CNCV_COLOR_SPACE_INVALID;
+
+    uint32_t in_width = src_mat.cols;
+    uint32_t in_height = src_mat.rows;
+    uint32_t num_src_ptrs = getPixFmtPlaneNum(src_fmt) * batch_size;
+    uint32_t num_dst_ptrs = getPixFmtPlaneNum(dst_fmt) * batch_size;
+
+    cncvImageDescriptor src_desc;
+    src_desc.width = in_width;
+    src_desc.height = in_height;
+    src_desc.depth = src_dtype;
+    src_desc.pixel_fmt = src_fmt;
+    src_desc.color_space = color_space;
+    src_desc.stride[0] = 3 * in_width * getSizeOfDepth(src_desc.depth);
+
+    cncvImageDescriptor dst_desc;
+    dst_desc.width = in_width;
+    dst_desc.height = in_height;
+    dst_desc.depth = dst_dtype;
+    dst_desc.pixel_fmt = dst_fmt;
+    dst_desc.color_space = color_space;
+    dst_desc.stride[0] = 3 * in_width * getSizeOfDepth(dst_desc.depth);
+
+    cncvRect src_roi;
+    src_roi.x = 0;
+    src_roi.y = 0;
+    src_roi.h = in_height;
+    src_roi.w = in_width;
+
+    cncvRect dst_roi;
+    dst_roi.x = 0;
+    dst_roi.y = 0;
+    dst_roi.h = in_height;
+    dst_roi.w = in_width;
+
+    uint64_t total_src_data_size = getFixedBatchDataSize(batch_size, src_desc);
+    uint64_t total_dst_data_size = getFixedBatchDataSize(batch_size, dst_desc);
+
+    uint64_t max_image_size = MAX(getImageDataSize(src_desc), getImageDataSize(dst_desc));
+
+    cpu_src_ptrs = (void **)malloc(num_src_ptrs * sizeof(void *));
+    cpu_dst_ptrs = (void **)malloc(num_dst_ptrs * sizeof(void *));
+    img_cpu_buffer = malloc(max_image_size);
+    mlu_src_ptrs = (void **)mallocDevice(num_src_ptrs * sizeof(void *));
+    mlu_dst_ptrs = (void **)mallocDevice(num_dst_ptrs * sizeof(void *));
+    mlu_src_datas = mallocDevice(total_src_data_size);
+    mlu_dst_datas = mallocDevice(total_dst_data_size);
+
+    uint64_t src_data_offset = 0;
+    uint64_t dst_data_offset = 0;
+    for (uint32_t i = 0; i < batch_size; i++)
+    {
+        callCNRTFunc(cnrtMemcpy((uint8_t *)mlu_src_datas + src_data_offset,
+                                src_mat.data,
+                                src_desc.stride[0] * src_desc.height,
+                                CNRT_MEM_TRANS_DIR_HOST2DEV));
+
+        cpu_src_ptrs[i] = (uint8_t *)mlu_src_datas + src_data_offset;
+        cpu_dst_ptrs[i] = (uint8_t *)mlu_dst_datas + dst_data_offset;
+
+        src_data_offset += src_desc.stride[0] * src_desc.height;
+        dst_data_offset += dst_desc.stride[0] * dst_desc.height;
+    }
+
+    callCNRTFunc(cnrtMemcpy(mlu_src_ptrs,
+                            cpu_src_ptrs,
+                            num_src_ptrs * sizeof(void *),
+                            CNRT_MEM_TRANS_DIR_HOST2DEV));
+    callCNRTFunc(cnrtMemcpy(mlu_dst_ptrs,
+                            cpu_dst_ptrs,
+                            num_dst_ptrs * sizeof(void *),
+                            CNRT_MEM_TRANS_DIR_HOST2DEV));
+
+    callCNCVFunc(cncvRgbxToRgbx(
+        handle,
+        batch_size,
+        src_desc,
+        src_roi,
+        mlu_src_ptrs,
+        dst_desc,
+        dst_roi,
+        mlu_dst_ptrs));
+
+    callCNRTFunc(cnrtQueueSync(queue));
+
+    for (size_t i = 0; i < batch_size; i++)
+    {
+        callCNRTFunc(cnrtMemcpy(img_cpu_buffer,
+                                cpu_dst_ptrs[i],
+                                dst_desc.stride[0] * dst_desc.height,
+                                CNRT_MEM_TRANS_DIR_DEV2HOST));
+        for(int i = 0; i < 12; i ++)
+        {
+            std::cout << " " << (int)(*((uchar*)img_cpu_buffer + i)) ;
+        }
+    }
+    std::cout << std::endl;
+}
+
 CNCVpreprocess::~CNCVpreprocess()
 {
     release();

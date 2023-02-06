@@ -34,5 +34,6 @@ public:
     void cncvresize();
     void cncvresizestdsplit(cv::Mat &img, float *data, int w, int h);
     void cncvresizestd(cv::Mat &img, void *data, int w, int h);
+    void cncvbgr2rgb();
     ~CNCVpreprocess();
 };
