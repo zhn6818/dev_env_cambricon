@@ -111,6 +111,8 @@ namespace CNRT_VIRGO
         }
         void process(std::vector<cv::Mat> &vecMat, std::vector<Predictioin> &result)
         {
+
+            
             result.resize(0);
 
             // float *data = new float[inputSize];
